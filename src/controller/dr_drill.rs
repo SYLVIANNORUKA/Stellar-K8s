@@ -6,12 +6,11 @@
 use chrono::Utc;
 use kube::{api::Patch, api::PatchParams, Client, ResourceExt};
 use std::str::FromStr;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use tracing::{debug, error, info, instrument, warn};
 
 use crate::crd::{
-    DRDrillResult, DRDrillScheduleConfig, DRDrillStatus, DRRole, DisasterRecoveryStatus,
-    StellarNode,
+    DRDrillResult, DRDrillScheduleConfig, DRDrillStatus, DisasterRecoveryStatus, StellarNode,
 };
 use crate::error::{Error, Result};
 
@@ -285,7 +284,7 @@ async fn verify_application_availability(
 
 /// Schedule a drill rollback after the configured delay
 async fn schedule_drill_rollback(
-    client: &Client,
+    _client: &Client,
     node: &StellarNode,
     drill_config: &DRDrillScheduleConfig,
 ) -> Result<()> {
