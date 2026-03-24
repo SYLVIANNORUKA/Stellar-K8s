@@ -307,6 +307,10 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             mtls_config: None,
             dry_run: true,
             is_leader: Arc::new(AtomicBool::new(true)),
+            event_reporter: kube::runtime::events::Reporter {
+                controller: "stellar-operator".to_string(),
+                instance: None,
+            },
         });
 
         // Test with a retriable error (network-related)
@@ -335,6 +339,10 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             mtls_config: None,
             dry_run: true,
             is_leader: Arc::new(AtomicBool::new(true)),
+            event_reporter: kube::runtime::events::Reporter {
+                controller: "stellar-operator".to_string(),
+                instance: None,
+            },
         });
 
         // Test with validation error (non-retriable)
@@ -362,6 +370,10 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             mtls_config: None,
             dry_run: true,
             is_leader: Arc::new(AtomicBool::new(true)),
+            event_reporter: kube::runtime::events::Reporter {
+                controller: "stellar-operator".to_string(),
+                instance: None,
+            },
         });
 
         let errors = vec![
@@ -581,6 +593,10 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             mtls_config: None,
             dry_run: false,
             is_leader: Arc::new(AtomicBool::new(true)),
+            event_reporter: kube::runtime::events::Reporter {
+                controller: "stellar-operator".to_string(),
+                instance: None,
+            },
         };
 
         assert_eq!(state.operator_namespace, "test-namespace");
@@ -604,6 +620,10 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             mtls_config: None,
             dry_run: true,
             is_leader: Arc::new(AtomicBool::new(true)),
+            event_reporter: kube::runtime::events::Reporter {
+                controller: "stellar-operator".to_string(),
+                instance: None,
+            },
         };
 
         assert!(
