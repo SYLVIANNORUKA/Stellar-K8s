@@ -15,6 +15,9 @@ use crate::crd::{
 };
 use crate::error::{Error, Result};
 
+#[cfg(feature = "metrics")]
+use super::metrics;
+
 /// Annotation key for tracking the last drill execution time
 pub const DR_DRILL_LAST_RUN_ANNOTATION: &str = "stellar.org/dr-drill-last-run";
 /// Annotation key for tracking drill status
@@ -92,6 +95,14 @@ pub async fn execute_dr_drill(
                     result.time_to_recovery_ms.unwrap_or(0)
                 );
 
+                // Record metrics
+                #[cfg(feature = "metrics")]
+                {
+                    let ttr_ms = result.time_to_recovery_ms.unwrap_or(0) as i64;
+                    metrics::observe_dr_drill_execution(&namespace, &name, "success", ttr_ms as f64);
+                    metrics::set_dr_drill_time_to_recovery(&namespace, &name, "success", ttr_ms);
+                }
+
                 // Handle auto-rollback if configured
                 if drill_config.auto_rollback {
                     if let Err(e) = schedule_drill_rollback(client, node, drill_config).await {
@@ -103,6 +114,14 @@ pub async fn execute_dr_drill(
                     "DR drill failed for {}/{}: {}",
                     namespace, name, result.message
                 );
+
+                // Record failure metrics
+                #[cfg(feature = "metrics")]
+                {
+                    let ttr_ms = result.time_to_recovery_ms.unwrap_or(0) as i64;
+                    metrics::observe_dr_drill_execution(&namespace, &name, "failed", ttr_ms as f64);
+                    metrics::set_dr_drill_time_to_recovery(&namespace, &name, "failed", ttr_ms);
+                }
             }
         }
         Err(e) => {
@@ -111,6 +130,14 @@ pub async fn execute_dr_drill(
             result.message = format!("Drill execution failed: {}", e);
             result.time_to_recovery_ms = Some(drill_start.elapsed().as_millis() as u64);
             result.completed_at = Some(Utc::now().to_rfc3339());
+
+            // Record error metrics
+            #[cfg(feature = "metrics")]
+            {
+                let ttr_ms = result.time_to_recovery_ms.unwrap_or(0) as i64;
+                metrics::observe_dr_drill_execution(&namespace, &name, "failed", ttr_ms as f64);
+                metrics::set_dr_drill_time_to_recovery(&namespace, &name, "failed", ttr_ms);
+            }
         }
     }
 
