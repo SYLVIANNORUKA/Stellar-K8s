@@ -50,6 +50,25 @@ Stellar-K8s follows the **Operator Pattern**, extending Kubernetes with a `Stell
 
 Get a Testnet node running in under 5 minutes.
 
+### Option 1: Docker Compose (No K8s Required)
+
+Perfect for local development and testing without a full Kubernetes cluster:
+
+```bash
+# Start the development environment
+make compose-up
+
+# View logs
+make compose-logs
+
+# Stop the environment
+make compose-down
+```
+
+See the [Docker Compose Quickstart Guide](docs/docker-compose-quickstart.md) for detailed instructions.
+
+### Option 2: Kubernetes Cluster
+
 ### 1. Install the Operator via Helm
 
 ```bash
@@ -116,6 +135,14 @@ kubectl stellar logs my-validator -f
 ```
 
 See [kubectl-plugin.md](docs/kubectl-plugin.md) for complete documentation.
+
+### Architecture Decision Records (ADRs)
+
+Major architectural decisions are documented in our [ADR directory](docs/adr/README.md), including:
+
+- **Choice of Rust** - Rationale for selecting Rust as the programming language
+- **kube-rs Finalizers** - Strategy for resource cleanup and lifecycle management  
+- **CRD Versioning** - Approach to API evolution and backward compatibility
 
 ### 4. Custom Validation Policies with WebAssembly
 
@@ -367,15 +394,19 @@ For more details on Soroban metrics, see the [Stellar Soroban RPC documentation]
 # Setup development environment
 make dev-setup
 
-# Quick pre-commit check
-make quick
+# Standard Development Targets
+make build         # Build release binary
+make test          # Run all tests
+make lint          # Run clippy
+make fmt           # Format code
+make docker-build  # Build Docker image
+make helm-lint     # Run Helm chart linting
+make crd-gen       # Generate CRDs
+make run-local     # Run operator locally in dev mode
+make clean         # Clean build artifacts
 
 # Full CI validation
 make ci-local
-
-# Build and run
-make build
-make run
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development guidelines.

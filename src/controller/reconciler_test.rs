@@ -93,6 +93,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 maintenance_mode: false,
                 network_policy: None,
                 dr_config: None,
+                pod_anti_affinity: Default::default(),
                 topology_spread_constraints: None,
                 cve_handling: None,
                 snapshot_schedule: None,
@@ -181,6 +182,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 maintenance_mode: false,
                 network_policy: None,
                 dr_config: None,
+                pod_anti_affinity: Default::default(),
                 topology_spread_constraints: None,
                 cve_handling: None,
                 snapshot_schedule: None,
@@ -267,6 +269,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 maintenance_mode: false,
                 network_policy: None,
                 dr_config: None,
+                pod_anti_affinity: Default::default(),
                 topology_spread_constraints: None,
                 cve_handling: None,
                 snapshot_schedule: None,
@@ -311,6 +314,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 controller: "stellar-operator".to_string(),
                 instance: None,
             },
+            operator_config: Arc::new(Default::default()),
         });
 
         // Test with a retriable error (network-related)
@@ -343,6 +347,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 controller: "stellar-operator".to_string(),
                 instance: None,
             },
+            operator_config: Arc::new(Default::default()),
         });
 
         // Test with validation error (non-retriable)
@@ -374,6 +379,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 controller: "stellar-operator".to_string(),
                 instance: None,
             },
+            operator_config: Arc::new(Default::default()),
         });
 
         let errors = vec![
@@ -597,6 +603,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 controller: "stellar-operator".to_string(),
                 instance: None,
             },
+            operator_config: Arc::new(Default::default()),
         };
 
         assert_eq!(state.operator_namespace, "test-namespace");
@@ -624,6 +631,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 controller: "stellar-operator".to_string(),
                 instance: None,
             },
+            operator_config: Arc::new(Default::default()),
         };
 
         assert!(
