@@ -1,3 +1,4 @@
+use std::process::{self};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
@@ -279,7 +280,7 @@ async fn main() -> Result<(), Error> {
         Commands::Run(run_args) => {
             if let Err(e) = run_args.validate() {
                 eprintln!("error: {e}");
-                std::process::exit(2);
+                process::exit(2);
             }
             return run_operator(run_args).await;
         }
