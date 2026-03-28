@@ -11,6 +11,7 @@ pub mod error;
 pub mod infra;
 pub mod preflight;
 pub mod scheduler;
+pub mod search;
 pub mod telemetry;
 
 #[cfg(feature = "rest-api")]
