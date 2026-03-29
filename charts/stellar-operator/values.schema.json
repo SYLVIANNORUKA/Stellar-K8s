@@ -158,10 +158,32 @@
     "affinity": {
       "type": "object"
     },
-    "operator": {
+    "sidecar": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["logLevel", "restApiEnabled", "restApiPort", "metricsPort"],
+      "description": "Diagnostic sidecar container configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "repository": { "type": "string" },
+            "tag": { "type": "string" },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"]
+            }
+          }
+        },
+        "resources": {
+          "$ref": "#/definitions/resourceRequirements"
+        }
+      }
+    },
+    "operator": {
       "properties": {
         "logLevel": {
           "type": "string",
