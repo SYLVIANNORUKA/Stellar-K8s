@@ -303,6 +303,7 @@ mod tests {
                 label_propagation: None,
                 resource_meta: None,
                 read_pool_endpoint: None,
+                sidecars: None,
             custom_network_passphrase: None,
             },
             status: None,

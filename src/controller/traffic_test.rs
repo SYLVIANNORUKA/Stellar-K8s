@@ -56,6 +56,7 @@ mod tests {
             resource_meta: None,
             vpa_config: None,
             read_pool_endpoint: None,
+            sidecars: None,
             custom_network_passphrase: None,
         }
     }
@@ -122,6 +123,7 @@ mod tests {
                 resource_meta: None,
                 vpa_config: None,
                 read_pool_endpoint: None,
+                sidecars: None,
             custom_network_passphrase: None,
             },
             status: None,
@@ -181,6 +183,7 @@ mod tests {
                 resource_meta: None,
                 vpa_config: None,
                 read_pool_endpoint: None,
+                sidecars: None,
             custom_network_passphrase: None,
             },
             status: None,

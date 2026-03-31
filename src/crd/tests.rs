@@ -65,6 +65,7 @@ mod stellar_node_spec_validation {
             resource_meta: None,
             vpa_config: None,
             read_pool_endpoint: None,
+            sidecars: None,
             custom_network_passphrase: None,
         }
     }
@@ -119,6 +120,7 @@ mod stellar_node_spec_validation {
             resource_meta: None,
             vpa_config: None,
             read_pool_endpoint: None,
+            sidecars: None,
             custom_network_passphrase: None,
         }
     }
@@ -173,6 +175,7 @@ mod stellar_node_spec_validation {
             resource_meta: None,
             vpa_config: None,
             read_pool_endpoint: None,
+            sidecars: None,
             custom_network_passphrase: None,
         }
     }

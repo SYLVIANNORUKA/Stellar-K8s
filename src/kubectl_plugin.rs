@@ -858,6 +858,7 @@ mod tests {
                 label_propagation: None,
                 resource_meta: None,
                 read_pool_endpoint: None,
+                sidecars: None,
             },
             status: Some(StellarNodeStatus {
                 #[allow(deprecated)]
