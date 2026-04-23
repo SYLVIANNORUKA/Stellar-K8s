@@ -4,6 +4,13 @@ set -e
 # Stellar-K8s Wave Issue Creation Script - BATCH 3 (High Complexity)
 # Issues #22 - #24
 
+EXPECTED_ISSUE_COUNT=3
+ACTUAL_ISSUE_COUNT=$(grep -c '^gh issue create' "$0")
+if [ "$ACTUAL_ISSUE_COUNT" -ne "$EXPECTED_ISSUE_COUNT" ]; then
+  echo "ERROR: Expected $EXPECTED_ISSUE_COUNT issue create calls, found $ACTUAL_ISSUE_COUNT. Update EXPECTED_ISSUE_COUNT or fix the script." >&2
+  exit 1
+fi
+
 echo "Creating Batch 3 (200 points) issues..."
 
 # 22. Automated PVC Snapshots/Backups (High - 200 Points)

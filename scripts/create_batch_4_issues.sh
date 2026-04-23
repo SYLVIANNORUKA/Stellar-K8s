@@ -4,6 +4,13 @@ set -e
 # Stellar-K8s Wave Issue Creation Script - BATCH 4
 # 6 High (200 pts), 2 Medium (150 pts), 2 Trivial (100 pts)
 
+EXPECTED_ISSUE_COUNT=10
+ACTUAL_ISSUE_COUNT=$(grep -c '^gh issue create' "$0")
+if [ "$ACTUAL_ISSUE_COUNT" -ne "$EXPECTED_ISSUE_COUNT" ]; then
+  echo "ERROR: Expected $EXPECTED_ISSUE_COUNT issue create calls, found $ACTUAL_ISSUE_COUNT. Update EXPECTED_ISSUE_COUNT or fix the script." >&2
+  exit 1
+fi
+
 echo "Creating Batch 4 (Mixed) issues..."
 
 # --- HIGH (200 pts) ---

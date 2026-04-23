@@ -3,6 +3,13 @@ set -euo pipefail
 
 REPO="OtowoOrg/Stellar-K8s"
 
+EXPECTED_ISSUE_COUNT=5
+ACTUAL_ISSUE_COUNT=$(grep -c '^create_issue_with_retry' "$0")
+if [ "$ACTUAL_ISSUE_COUNT" -ne "$EXPECTED_ISSUE_COUNT" ]; then
+  echo "ERROR: Expected $EXPECTED_ISSUE_COUNT issue create calls, found $ACTUAL_ISSUE_COUNT. Update EXPECTED_ISSUE_COUNT or fix the script." >&2
+  exit 1
+fi
+
 echo "Creating Batch 11 (5 x 150 pts) issues with auto-retry..."
 
 function create_issue_with_retry() {

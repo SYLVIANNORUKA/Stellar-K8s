@@ -2,6 +2,13 @@
 # Stellar-K8s Wave Issue Creation Script - BATCH 6
 # 10 Elite Engineering Issues (200 pts each)
 
+EXPECTED_ISSUE_COUNT=10
+ACTUAL_ISSUE_COUNT=$(grep -c '^gh issue create' "$0")
+if [ "$ACTUAL_ISSUE_COUNT" -ne "$EXPECTED_ISSUE_COUNT" ]; then
+  echo "ERROR: Expected $EXPECTED_ISSUE_COUNT issue create calls, found $ACTUAL_ISSUE_COUNT. Update EXPECTED_ISSUE_COUNT or fix the script." >&2
+  exit 1
+fi
+
 # Helper to create label if not exists
 create_label() {
   gh label create "$1" --color "$2" --description "$3" || true

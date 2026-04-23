@@ -3,6 +3,13 @@ set -euo pipefail
 
 REPO="OtowoOrg/Stellar-K8s"
 
+EXPECTED_ISSUE_COUNT=10
+ACTUAL_ISSUE_COUNT=$(grep -c '^gh issue create' "$0")
+if [ "$ACTUAL_ISSUE_COUNT" -ne "$EXPECTED_ISSUE_COUNT" ]; then
+  echo "ERROR: Expected $EXPECTED_ISSUE_COUNT issue create calls, found $ACTUAL_ISSUE_COUNT. Update EXPECTED_ISSUE_COUNT or fix the script." >&2
+  exit 1
+fi
+
 echo "Creating Batch 8 (10 x 200 pts) issues..."
 
 # ─── ISSUE 1 ───────────────────────────────────────────────────────────────────
