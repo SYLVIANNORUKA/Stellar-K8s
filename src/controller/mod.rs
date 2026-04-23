@@ -48,6 +48,7 @@
 //! - Cleans up associated resources (Services, ConfigMaps, etc.)
 //! - Removes finalizer only after successful cleanup
 
+pub mod benchmark;
 pub mod blue_green;
 pub mod feature_flags;
 pub mod label_propagation;
@@ -117,6 +118,7 @@ pub use feature_flags::{
     watch_feature_flags, FeatureFlags, SharedFeatureFlags, FEATURE_FLAGS_CONFIGMAP,
 };
 pub use finalizers::STELLAR_NODE_FINALIZER;
+pub use benchmark::run_benchmark_controller;
 pub use health::{check_node_health, HealthCheckResult};
 pub use operator_config::{hardcoded_defaults, OperatorConfig};
 pub use peer_discovery::{
