@@ -382,9 +382,7 @@ fn test_all_yaml_blocks_are_valid() {
             let result: Result<serde_yaml::Value, _> = serde_yaml::from_str(doc);
             assert!(
                 result.is_ok(),
-                "YAML block {} (or a sub-document within it) should be valid YAML:\n{}",
-                i,
-                doc
+                "YAML block {i} (or a sub-document within it) should be valid YAML:\n{doc}",
             );
         }
     }
