@@ -175,4 +175,3 @@ name = "stellar-completions"
 path = "src/bin/completions.rs"
 
 [workspace]
-
