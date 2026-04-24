@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DRY_RUN=false
+DRY_RUN=""
 BATCHES=()
 
 usage() {
@@ -26,7 +26,7 @@ list_batches() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --list)    list_batches; exit 0 ;;
-    --dry-run) DRY_RUN=true ;;
+    --dry-run) DRY_RUN=true ;; # exported to child scripts as env var
     --batch)   IFS=',' read -ra BATCHES <<< "$2"; shift ;;
     --help|-h) usage ;;
     *) echo "Unknown option: $1"; usage ;;
@@ -50,10 +50,11 @@ for num in "${BATCHES[@]}"; do
   fi
 
   echo "→ Running batch $num..."
-  if $DRY_RUN; then
-    DRY_RUN=true bash "$script" && echo "✓ Batch $num done (dry-run)" || { echo "✗ Batch $num failed"; EXIT_CODE=1; }
+  if DRY_RUN="$DRY_RUN" bash "$script"; then
+    echo "✓ Batch $num done${DRY_RUN:+ (dry-run)}"
   else
-    bash "$script" && echo "✓ Batch $num done" || { echo "✗ Batch $num failed"; EXIT_CODE=1; }
+    echo "✗ Batch $num failed"
+    EXIT_CODE=1
   fi
 done
 
