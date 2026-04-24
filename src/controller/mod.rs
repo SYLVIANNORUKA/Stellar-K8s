@@ -50,10 +50,12 @@
 
 pub mod benchmark;
 pub mod blue_green;
+pub mod cross_cloud_failover;
 pub mod feature_flags;
 pub mod label_propagation;
 pub mod maintenance;
 pub mod network_isolation;
+pub mod pss;
 pub mod resource_meta;
 
 mod archive_health;
@@ -114,6 +116,7 @@ pub use blue_green::{
     cleanup_blue_deployment, create_green_deployment, rollback_to_blue, run_smoke_tests,
     switch_traffic_to_green, wait_for_green_ready, BlueGreenConfig, BlueGreenStatus,
 };
+pub use cross_cloud_failover::reconcile_cross_cloud_failover;
 pub use cross_cluster::{check_peer_latency, ensure_cross_cluster_services, PeerLatencyStatus};
 pub use cve_reconciler::reconcile_cve_patches;
 pub use feature_flags::{
@@ -130,6 +133,10 @@ pub use operator_config::{hardcoded_defaults, OperatorConfig};
 pub use peer_discovery::{
     get_peers_from_config_map, trigger_peer_config_reload, PeerDiscoveryConfig,
     PeerDiscoveryManager, PeerInfo,
+};
+pub use pss::{
+    ensure_namespace_pss_labels, restricted_container_security_context,
+    restricted_pod_security_context, validate_pss_compliance, PssViolation,
 };
 #[cfg(feature = "reconciler-fuzz")]
 pub use reconciler::reconcile_for_fuzz;

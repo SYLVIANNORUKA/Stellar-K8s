@@ -222,6 +222,12 @@ pub struct StellarNodeSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(with = "Option<Vec<serde_json::Value>>")]
     pub sidecars: Option<Vec<k8s_openapi::api::core::v1::Container>>,
+
+    /// Cross-cloud failover configuration for Horizon clusters.
+    /// Enables seamless traffic failover between cloud providers (AWS, GCP, Azure)
+    /// during major provider outages.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cross_cloud_failover: Option<crate::crd::CrossCloudFailoverConfig>,
 }
 
 fn default_replicas() -> i32 {
@@ -274,6 +280,7 @@ impl Default for StellarNodeSpec {
             resource_meta: None,
             custom_network_passphrase: None,
             sidecars: None,
+            cross_cloud_failover: None,
         }
     }
 }
@@ -1102,6 +1109,9 @@ pub struct StellarNodeStatus {
     /// Tracks the restore phase and time-to-sync for observability.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub snapshot_bootstrap: Option<SnapshotBootstrapStatus>,
+    /// Cross-cloud failover status (Horizon/SorobanRpc nodes only)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cross_cloud_failover_status: Option<crate::crd::CrossCloudFailoverStatus>,
 }
 
 /// BGP advertisement status information

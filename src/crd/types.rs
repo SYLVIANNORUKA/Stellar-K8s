@@ -320,6 +320,10 @@ pub struct SnapshotScheduleConfig {
     /// Maximum number of snapshots to retain per node. Oldest snapshots are deleted when exceeded. 0 means no limit.
     #[serde(default)]
     pub retention_count: u32,
+    /// Reference to a Cloud KMS key for encrypting the snapshot (e.g. AWS KMS ARN, GCP KMS Key Name).
+    /// If provided, the operator will ensure the snapshot is encrypted using this key.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub encryption_key_ref: Option<String>,
 }
 
 /// Configuration to bootstrap a new node from an existing CSI VolumeSnapshot
@@ -412,6 +416,9 @@ pub struct ValidatorConfig {
     /// Quorum set configuration as TOML string
     #[serde(skip_serializing_if = "Option::is_none")]
     pub quorum_set: Option<String>,
+    /// Known peers configuration as TOML string (KNOWN_PEERS)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub known_peers: Option<String>,
     /// Enable history archive for this validator
     #[serde(default)]
     pub enable_history_archive: bool,
@@ -430,9 +437,48 @@ pub struct ValidatorConfig {
     /// Trusted source for Validator Selection List (VSL)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub vl_source: Option<String>,
+    /// Quorum set optimization configuration
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quorum_optimization: Option<QuorumOptimizationConfig>,
     /// Cloud HSM configuration for secure key loading (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hsm_config: Option<HsmConfig>,
+}
+
+/// Quorum set optimization configuration
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct QuorumOptimizationConfig {
+    /// Enable automated quorum set optimization
+    #[serde(default)]
+    pub enabled: bool,
+    /// Optimization mode (Manual or Auto)
+    #[serde(default)]
+    pub mode: QuorumOptimizationMode,
+    /// Interval in seconds for optimization analysis (default: 3600s / 1h)
+    #[serde(default = "default_optimization_interval")]
+    pub interval_secs: u32,
+    /// Maximum RTT threshold in ms for considering a peer "slow" (default: 500ms)
+    #[serde(default = "default_rtt_threshold")]
+    pub rtt_threshold_ms: u32,
+}
+
+fn default_optimization_interval() -> u32 {
+    3600
+}
+
+fn default_rtt_threshold() -> u32 {
+    500
+}
+
+/// Quorum optimization mode
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+pub enum QuorumOptimizationMode {
+    /// Suggest updates only (emits events and updates status)
+    #[default]
+    Manual,
+    /// Automatically apply recommended updates to the CRD
+    Auto,
 }
 
 // =============================================================================
@@ -1710,4 +1756,218 @@ pub struct LabelPropagationConfig {
     /// Takes precedence over allowList.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub deny_list: Vec<String>,
+}
+
+// ── Cross-Cloud Failover ─────────────────────────────────────────────────────
+
+/// Cross-cloud failover configuration for Horizon clusters.
+///
+/// Enables seamless traffic failover between cloud providers (AWS, GCP, Azure)
+/// during major provider outages, targeting 99.99% availability.
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct CrossCloudFailoverConfig {
+    /// Enable cross-cloud failover
+    #[serde(default)]
+    pub enabled: bool,
+
+    /// Role of this cluster in the cross-cloud setup
+    #[serde(default)]
+    pub role: CrossCloudRole,
+
+    /// Cloud provider identifier for this cluster (e.g. "aws", "gcp", "azure")
+    pub primary_cloud_provider: String,
+
+    /// All cloud endpoints participating in the failover pool
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub clouds: Vec<CloudEndpointConfig>,
+
+    /// Global Load Balancer configuration (Cloudflare, F5, AWS Global Accelerator)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub global_load_balancer: Option<GlobalLoadBalancerConfig>,
+
+    /// Database synchronization configuration
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub database_sync: Option<DatabaseSyncConfig>,
+
+    /// Number of consecutive health check failures before triggering failover
+    #[serde(default = "default_failure_threshold_cc")]
+    pub failure_threshold: Option<u32>,
+
+    /// Health check timeout in seconds
+    #[serde(default = "default_health_check_timeout_cc")]
+    pub health_check_timeout_seconds: Option<u32>,
+
+    /// Automatically fail back to primary cloud when it recovers
+    #[serde(default)]
+    pub auto_failback: Option<bool>,
+}
+
+fn default_failure_threshold_cc() -> Option<u32> {
+    Some(3)
+}
+
+fn default_health_check_timeout_cc() -> Option<u32> {
+    Some(5)
+}
+
+/// Role of this cluster in the cross-cloud failover setup
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum CrossCloudRole {
+    /// This cluster is the primary traffic destination
+    #[default]
+    Primary,
+    /// This cluster is a warm standby
+    Secondary,
+}
+
+/// Configuration for a single cloud endpoint in the failover pool
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct CloudEndpointConfig {
+    /// Cloud provider identifier (e.g. "aws", "gcp", "azure")
+    pub cloud_provider: String,
+
+    /// Cloud region (e.g. "us-east-1", "us-central1")
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub region: Option<String>,
+
+    /// Public hostname or IP of the Horizon cluster in this cloud
+    pub endpoint: String,
+
+    /// Priority for failover selection (higher = preferred). Default: 100
+    #[serde(default = "default_cloud_priority")]
+    pub priority: u32,
+
+    /// Whether this cloud endpoint is active
+    #[serde(default = "default_true_cc")]
+    pub enabled: bool,
+}
+
+fn default_cloud_priority() -> u32 {
+    100
+}
+
+fn default_true_cc() -> bool {
+    true
+}
+
+/// Global Load Balancer provider and configuration
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct GlobalLoadBalancerConfig {
+    /// GLB provider
+    pub provider: GLBProvider,
+
+    /// Public hostname managed by the GLB (e.g. "horizon.stellar.example.com")
+    pub hostname: String,
+
+    /// Path used for health checks (default: "/health")
+    #[serde(default = "default_health_path")]
+    pub health_check_path: Option<String>,
+
+    /// DNS TTL in seconds (lower = faster failover, higher = less DNS traffic)
+    #[serde(default = "default_glb_ttl")]
+    pub ttl_seconds: u32,
+
+    /// Kubernetes Secret containing GLB API credentials
+    /// For Cloudflare: keys `CF_API_TOKEN` and `CF_ZONE_ID`
+    /// For F5: keys `F5_USERNAME` and `F5_PASSWORD`
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub credentials_secret_ref: Option<String>,
+}
+
+fn default_health_path() -> Option<String> {
+    Some("/health".to_string())
+}
+
+fn default_glb_ttl() -> u32 {
+    60
+}
+
+/// Supported Global Load Balancer providers
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum GLBProvider {
+    /// Cloudflare Load Balancing / DNS
+    #[default]
+    Cloudflare,
+    /// F5 BIG-IP Global Traffic Manager
+    F5,
+    /// AWS Global Accelerator
+    AWSGlobalAccelerator,
+    /// Generic external-dns (works with any DNS provider)
+    ExternalDNS,
+}
+
+/// Database synchronization configuration for cross-cloud failover
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct DatabaseSyncConfig {
+    /// Synchronization method
+    pub method: DatabaseSyncMethod,
+
+    /// PostgreSQL logical replication slot name (for LogicalReplication method)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub replication_slot: Option<String>,
+
+    /// Maximum acceptable replication lag in seconds before blocking failover
+    #[serde(default = "default_max_lag")]
+    pub max_lag_seconds: Option<u32>,
+
+    /// Secret containing database credentials for the standby cluster
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub standby_credentials_secret_ref: Option<String>,
+}
+
+fn default_max_lag() -> Option<u32> {
+    Some(30)
+}
+
+/// Database synchronization method
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum DatabaseSyncMethod {
+    /// PostgreSQL logical replication (lowest RPO, requires pg_logical)
+    #[default]
+    LogicalReplication,
+    /// CloudNativePG cross-cluster replica (uses CNPG Cluster with externalClusters)
+    CNPGCrossCluster,
+    /// Periodic snapshot restore (higher RPO, simpler setup)
+    SnapshotRestore,
+}
+
+/// Status of the cross-cloud failover
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct CrossCloudFailoverStatus {
+    /// Current role of this cluster
+    pub current_role: Option<CrossCloudRole>,
+
+    /// Whether a failover is currently active
+    #[serde(default)]
+    pub failover_active: bool,
+
+    /// Cloud provider currently receiving traffic
+    pub active_cloud: Option<String>,
+
+    /// Health status of each cloud endpoint
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cloud_health: Option<Vec<crate::controller::cross_cloud_failover::CloudHealthStatus>>,
+
+    /// Timestamp of the last health check
+    pub last_check_time: Option<String>,
+
+    /// Timestamp of the last failover
+    pub last_failover_time: Option<String>,
+
+    /// Reason for the last failover
+    pub last_failover_reason: Option<String>,
+
+    /// Timestamp of the last failback
+    pub last_failback_time: Option<String>,
+
+    /// Timestamp of the last failover attempt (may have been blocked)
+    pub last_failover_attempt: Option<String>,
 }
