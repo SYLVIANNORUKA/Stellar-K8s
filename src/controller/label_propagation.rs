@@ -277,6 +277,7 @@ mod tests {
                 custom_network_passphrase: None,
                 cross_cloud_failover: None,
                 hitless_upgrade: None,
+                ..Default::default()
             },
             status: None,
         }

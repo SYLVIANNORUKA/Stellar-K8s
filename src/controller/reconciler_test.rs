@@ -85,6 +85,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                     kms_config: None,
                     vl_source: None,
                     hsm_config: None,
+                    ..Default::default()
                 }),
                 horizon_config: None,
                 soroban_config: None,
@@ -123,6 +124,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 vpa_config: None,
                 custom_network_passphrase: None,
                 nat_traversal: None,
+                ..Default::default()
             },
             status: None,
         }
@@ -220,6 +222,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 nat_traversal: None,
                 cross_cloud_failover: None,
                 hitless_upgrade: None,
+                ..Default::default()
             },
             status: None,
         }
@@ -315,6 +318,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 nat_traversal: None,
                 cross_cloud_failover: None,
                 hitless_upgrade: None,
+                ..Default::default()
             },
             status: None,
         }
@@ -357,8 +361,8 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             log_reload_handle: make_reload_handle(),
             log_level_expires_at: Arc::new(tokio::sync::Mutex::new(None)),
             last_event_received: Arc::new(std::sync::atomic::AtomicU64::new(0)),
-            job_registry: Arc::new(super::background_jobs::JobRegistry::new()),
-            audit_log: Arc::new(super::audit_log::AuditLog::new()),
+            job_registry: Arc::new(crate::controller::background_jobs::JobRegistry::new()),
+            audit_log: Arc::new(crate::controller::audit_log::AuditLog::new()),
             oidc_config: None,
         });
 
@@ -402,8 +406,8 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             log_reload_handle: make_reload_handle(),
             log_level_expires_at: Arc::new(tokio::sync::Mutex::new(None)),
             last_event_received: Arc::new(std::sync::atomic::AtomicU64::new(0)),
-            job_registry: Arc::new(super::background_jobs::JobRegistry::new()),
-            audit_log: Arc::new(super::audit_log::AuditLog::new()),
+            job_registry: Arc::new(crate::controller::background_jobs::JobRegistry::new()),
+            audit_log: Arc::new(crate::controller::audit_log::AuditLog::new()),
             oidc_config: None,
         });
 
@@ -446,8 +450,8 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             log_level_expires_at: Arc::new(tokio::sync::Mutex::new(None)),
             log_reload_handle: make_reload_handle(),
             last_event_received: Arc::new(std::sync::atomic::AtomicU64::new(0)),
-            job_registry: Arc::new(super::background_jobs::JobRegistry::new()),
-            audit_log: Arc::new(super::audit_log::AuditLog::new()),
+            job_registry: Arc::new(crate::controller::background_jobs::JobRegistry::new()),
+            audit_log: Arc::new(crate::controller::audit_log::AuditLog::new()),
             oidc_config: None,
         });
 
@@ -682,8 +686,8 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             log_reload_handle: make_reload_handle(),
             log_level_expires_at: Arc::new(tokio::sync::Mutex::new(None)),
             last_event_received: Arc::new(std::sync::atomic::AtomicU64::new(0)),
-            job_registry: Arc::new(super::background_jobs::JobRegistry::new()),
-            audit_log: Arc::new(super::audit_log::AuditLog::new()),
+            job_registry: Arc::new(crate::controller::background_jobs::JobRegistry::new()),
+            audit_log: Arc::new(crate::controller::audit_log::AuditLog::new()),
             oidc_config: None,
         };
 
@@ -722,8 +726,8 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             log_reload_handle: make_reload_handle(),
             log_level_expires_at: Arc::new(tokio::sync::Mutex::new(None)),
             last_event_received: Arc::new(std::sync::atomic::AtomicU64::new(0)),
-            job_registry: Arc::new(super::background_jobs::JobRegistry::new()),
-            audit_log: Arc::new(super::audit_log::AuditLog::new()),
+            job_registry: Arc::new(crate::controller::background_jobs::JobRegistry::new()),
+            audit_log: Arc::new(crate::controller::audit_log::AuditLog::new()),
             oidc_config: None,
         };
 
@@ -790,29 +794,29 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             let mut conditions = Vec::new();
             apply_phase_conditions(&mut conditions, &phase, message.as_deref());
 
-            let ready = condition_status(&conditions, super::super::conditions::CONDITION_TYPE_READY);
+            let ready = condition_status(&conditions, crate::controller::conditions::CONDITION_TYPE_READY);
             prop_assert!(ready.is_some());
 
             match phase.as_str() {
                 "Ready" | "Running" => {
-                    prop_assert_eq!(ready, Some(super::super::conditions::CONDITION_STATUS_TRUE));
+                    prop_assert_eq!(ready, Some(crate::controller::conditions::CONDITION_STATUS_TRUE));
                 }
                 _ => {
-                    prop_assert_ne!(ready, Some(super::super::conditions::CONDITION_STATUS_TRUE));
+                    prop_assert_ne!(ready, Some(crate::controller::conditions::CONDITION_STATUS_TRUE));
                 }
             }
 
             match phase.as_str() {
                 "Degraded" | "Failed" | "Remediating" => {
                     prop_assert_eq!(
-                        condition_status(&conditions, super::super::conditions::CONDITION_TYPE_DEGRADED),
-                        Some(super::super::conditions::CONDITION_STATUS_TRUE)
+                        condition_status(&conditions, crate::controller::conditions::CONDITION_TYPE_DEGRADED),
+                        Some(crate::controller::conditions::CONDITION_STATUS_TRUE)
                     );
                 }
                 "Ready" => {
                     prop_assert_eq!(
-                        condition_status(&conditions, super::super::conditions::CONDITION_TYPE_DEGRADED),
-                        Some(super::super::conditions::CONDITION_STATUS_FALSE)
+                        condition_status(&conditions, crate::controller::conditions::CONDITION_TYPE_DEGRADED),
+                        Some(crate::controller::conditions::CONDITION_STATUS_FALSE)
                     );
                 }
                 _ => {}
@@ -832,8 +836,8 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             apply_phase_conditions(&mut conditions, &phase, None);
 
             prop_assert_eq!(
-                condition_status(&conditions, super::super::conditions::CONDITION_TYPE_READY),
-                Some(super::super::conditions::CONDITION_STATUS_UNKNOWN)
+                condition_status(&conditions, crate::controller::conditions::CONDITION_TYPE_READY),
+                Some(crate::controller::conditions::CONDITION_STATUS_UNKNOWN)
             );
         }
 

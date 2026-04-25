@@ -483,6 +483,7 @@ mod tests {
                     kms_config: None,
                     vl_source: None,
                     hsm_config: None,
+                    ..Default::default()
                 }),
                 horizon_config: None,
                 soroban_config: None,
@@ -523,6 +524,7 @@ mod tests {
                 custom_network_passphrase: None,
                 cross_cloud_failover: None,
                 hitless_upgrade: None,
+                ..Default::default()
             },
             status: None,
         }

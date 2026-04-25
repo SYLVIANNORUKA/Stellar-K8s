@@ -10,13 +10,13 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::types::{
-    AutoscalingConfig, CertManagerConfig, Condition, CrossClusterConfig, DisasterRecoveryConfig,
-    DisasterRecoveryStatus, ExternalDatabaseConfig, ForensicSnapshotConfig, GlobalDiscoveryConfig,
-    HistoryMode, HorizonConfig, IngressConfig, LabelPropagationConfig, LoadBalancerConfig,
-    ManagedDatabaseConfig, NetworkPolicyConfig, NodeType, OciSnapshotConfig, PlacementConfig,
-    PodAntiAffinityStrength, ProbeConfig, ResourceRequirements, RestoreFromSnapshotConfig,
-    RetentionPolicy, RolloutStrategy, SnapshotScheduleConfig, SorobanConfig, StellarNetwork,
-    StorageConfig, ValidatorConfig, VpaConfig,
+    AutoscalingConfig, Condition, CrossClusterConfig, DisasterRecoveryConfig,
+    DisasterRecoveryStatus, ExternalDatabaseConfig, ForensicSnapshotConfig, GasAutoscalingConfig,
+    GlobalDiscoveryConfig, HistoryMode, HorizonConfig, IngressConfig, LabelPropagationConfig,
+    LoadBalancerConfig, ManagedDatabaseConfig, NetworkPolicyConfig, NodeType, OciSnapshotConfig,
+    PlacementConfig, PodAntiAffinityStrength, ProbeConfig, ResourceRequirements,
+    RestoreFromSnapshotConfig, RetentionPolicy, RolloutStrategy, SnapshotScheduleConfig,
+    SorobanConfig, StellarNetwork, StorageConfig, ValidatorConfig, VpaConfig,
 };
 
 /// Structured validation error for `StellarNodeSpec`
@@ -283,6 +283,13 @@ pub struct StellarNodeSpec {
     /// See `docs/hitless-upgrade.md` for the full design and feasibility study.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hitless_upgrade: Option<super::types::HitlessUpgradeConfig>,
+
+    /// Proactive Failure Detection using eBPF.
+    ///
+    /// When enabled, an `ebpf-exporter` sidecar is injected into the Validator Pod
+    /// to monitor silent failures like slow disk IO and network jitter.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ebpf_config: Option<super::types::EbpfConfig>,
 }
 
 fn default_replicas() -> i32 {
@@ -339,6 +346,8 @@ impl Default for StellarNodeSpec {
             probes: None,
             cross_cloud_failover: None,
             hitless_upgrade: None,
+            ebpf_config: None,
+            proximity_aware: false,
         }
     }
 }
@@ -601,6 +610,15 @@ impl StellarNodeSpec {
                             "Set spec.autoscaling.maxReplicas to be greater than or equal to minReplicas.",
                         ));
                     }
+                    if let Some(ref gas) = autoscaling.gas_autoscaling {
+                        if gas.enabled {
+                            errors.push(SpecValidationError::new(
+                                "spec.autoscaling.gasAutoscaling",
+                                "gasAutoscaling is only supported for SorobanRPC nodes",
+                                "Remove spec.autoscaling.gasAutoscaling or set enabled: false for Horizon nodes; gas-based autoscaling is only supported for SorobanRpc.",
+                            ));
+                        }
+                    }
                 }
                 if let Some(ingress) = &self.ingress {
                     validate_ingress(ingress, &mut errors);
@@ -636,6 +654,9 @@ impl StellarNodeSpec {
                             "autoscaling.maxReplicas must be >= minReplicas",
                             "Set spec.autoscaling.maxReplicas to be greater than or equal to minReplicas.",
                         ));
+                    }
+                    if let Some(ref gas) = autoscaling.gas_autoscaling {
+                        validate_gas_autoscaling(gas, &mut errors);
                     }
                 }
                 if let Some(ingress) = &self.ingress {
@@ -713,6 +734,34 @@ impl StellarNodeSpec {
         self.storage.retention_policy == RetentionPolicy::Delete
     }
 }
+
+fn validate_gas_autoscaling(gas: &GasAutoscalingConfig, errors: &mut Vec<SpecValidationError>) {
+    if !gas.enabled {
+        return;
+    }
+    if gas.min_replicas > gas.max_replicas {
+        errors.push(SpecValidationError::new(
+            "spec.autoscaling.gasAutoscaling.minReplicas",
+            "gasAutoscaling.minReplicas must be <= maxReplicas",
+            "Set spec.autoscaling.gasAutoscaling.minReplicas to a value less than or equal to maxReplicas.",
+        ));
+    }
+    if gas.ewma_alpha <= 0.0 || gas.ewma_alpha >= 1.0 {
+        errors.push(SpecValidationError::new(
+            "spec.autoscaling.gasAutoscaling.ewmaAlpha",
+            "gasAutoscaling.ewmaAlpha must be in range (0.0, 1.0) exclusive",
+            "Set spec.autoscaling.gasAutoscaling.ewmaAlpha to a value strictly between 0.0 and 1.0 (e.g. 0.3).",
+        ));
+    }
+    if gas.scale_up_threshold <= gas.scale_down_threshold {
+        errors.push(SpecValidationError::new(
+            "spec.autoscaling.gasAutoscaling.scaleUpThreshold",
+            "gasAutoscaling.scaleUpThreshold must be greater than scaleDownThreshold",
+            "Set spec.autoscaling.gasAutoscaling.scaleUpThreshold to a value strictly greater than scaleDownThreshold.",
+        ));
+    }
+}
+
 #[allow(dead_code)]
 fn validate_ingress(ingress: &IngressConfig, errors: &mut Vec<SpecValidationError>) {
     if ingress.hosts.is_empty() {
