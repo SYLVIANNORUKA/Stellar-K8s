@@ -150,9 +150,36 @@ enum Commands {
         /// SQL query to execute
         query: String,
     },
+    /// Inspect compliance audit trails
+    Audit {
+        #[command(subcommand)]
+        command: AuditCommands,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum AuditCommands {
+    /// List recent audit entries
+    List {
+        /// Number of entries to show
+        #[arg(short, long, default_value = "50")]
+        limit: usize,
+        /// Filter by resource name
+        #[arg(short, long)]
+        resource: Option<String>,
+        /// Filter by actor
+        #[arg(short, long)]
+        actor: Option<String>,
+    },
+    /// Show detailed diff for a specific audit entry
+    Show {
+        /// Audit entry ID
+        id: String,
+    },
 }
 
 mod sql;
+mod audit_report;
 
 #[tokio::main]
 async fn main() {
@@ -198,6 +225,9 @@ async fn run(cli: Cli) -> Result<()> {
             Commands::Sql { node_name, .. } => Some(format!(
                 "Execute SQL query against StellarNode '{node_name}' (read-only)"
             )),
+            Commands::Audit { .. } => {
+                Some("Inspect compliance audit trails (read-only)".to_string())
+            }
         };
         if let Some(desc) = action {
             println!("[dry-run] Would: {desc}");
@@ -346,6 +376,22 @@ async fn run(cli: Cli) -> Result<()> {
 
             let executor = sql::SqlExecutor::new(client, namespace.to_string());
             executor.execute(&node_name, &query, output_format).await
+        }
+        Commands::Audit { command } => {
+            let bucket = std::env::var("STELLAR_AUDIT_BUCKET")
+                .map_err(|_| Error::ConfigError("STELLAR_AUDIT_BUCKET environment variable must be set to access audit logs".to_string()))?;
+            let prefix = std::env::var("STELLAR_AUDIT_PREFIX").unwrap_or_else(|_| "audit-logs/".to_string());
+            
+            let reporter = audit_report::AuditReporter::new(bucket, prefix).await;
+            
+            match command {
+                AuditCommands::List { limit, resource, actor } => {
+                    reporter.list(limit, resource, actor).await
+                }
+                AuditCommands::Show { id } => {
+                    reporter.show(&id).await
+                }
+            }
         }
     }
 }
@@ -939,6 +985,7 @@ mod tests {
                 history_mode: Default::default(),
                 custom_network_passphrase: None,
                 nat_traversal: None,
+                ..Default::default()
             },
             status: Some(StellarNodeStatus {
                 #[allow(deprecated)]
@@ -963,6 +1010,7 @@ mod tests {
                 vault_observed_secret_version: None,
                 forensic_snapshot_phase: None,
                 label_propagation_status: None,
+                ..Default::default()
             }),
         }
     }

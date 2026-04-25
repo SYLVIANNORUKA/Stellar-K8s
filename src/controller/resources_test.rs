@@ -75,6 +75,7 @@ mod tests {
             custom_network_passphrase: None,
             cross_cloud_failover: None,
             hitless_upgrade: None,
+            ..Default::default()
         }
     }
 
@@ -344,6 +345,7 @@ peer-2 = "G..."
             kms_config: None,
             vl_source: None,
             hsm_config: None,
+            ..Default::default()
         });
 
         let affinity = merge_workload_affinity(&node).expect("affinity should be generated");
@@ -553,6 +555,7 @@ peer-2 = "G..."
 "#
             .to_string(),
         );
+        vc.known_peers = Some(r#"["1.2.3.4:11625", "example.com:11625"]"#.to_string());
         node.spec.validator_config = Some(vc);
 
         let config = crate::crd::types::NetworkPolicyConfig {

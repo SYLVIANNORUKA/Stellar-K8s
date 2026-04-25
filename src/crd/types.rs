@@ -729,7 +729,7 @@ pub struct SecretKeyRef {
 }
 
 /// Ingress configuration
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct IngressConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -749,7 +749,7 @@ pub struct IngressConfig {
 }
 
 /// Ingress host entry
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct IngressHost {
     pub host: String,
@@ -761,7 +761,7 @@ pub struct IngressHost {
 }
 
 /// Ingress path mapping
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct IngressPath {
     pub path: String,
@@ -785,7 +785,7 @@ fn default_max_events() -> u32 {
 }
 
 /// Horizontal Pod Autoscaling configuration
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AutoscalingConfig {
     pub min_replicas: i32,
@@ -826,7 +826,7 @@ pub struct EbpfConfig {
 }
 
 /// Scaling behavior configuration for HPA
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ScalingBehavior {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -836,7 +836,7 @@ pub struct ScalingBehavior {
 }
 
 /// Scaling policy
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ScalingPolicy {
     pub stabilization_window_seconds: Option<i32>,

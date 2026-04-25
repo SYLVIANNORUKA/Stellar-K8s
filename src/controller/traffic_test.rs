@@ -58,9 +58,9 @@ mod tests {
             validator_config: None,
             horizon_config: None,
             soroban_config: None,
-            nat_traversal: None,
             cross_cloud_failover: None,
             hitless_upgrade: None,
+            ..Default::default()
         }
     }
 
@@ -131,6 +131,7 @@ mod tests {
                 nat_traversal: None,
                 cross_cloud_failover: None,
                 hitless_upgrade: None,
+                ..Default::default()
             },
             status: None,
         }
@@ -194,6 +195,7 @@ mod tests {
                 nat_traversal: None,
                 cross_cloud_failover: None,
                 hitless_upgrade: None,
+                ..Default::default()
             },
             status: None,
         }

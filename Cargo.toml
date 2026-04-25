@@ -127,6 +127,11 @@ pqcrypto-kyber = "0.8.1"
 pqcrypto-traits = "0.3.5"
 comfy-table = "7.2.2"
 csv = "1.4.0"
+aws-sdk-s3 = "1.131.0"
+aws-config = "1.8.16"
+serde_json_diff = "0.2.0"
+json-patch = "4.1.0"
+md5 = "0.8.0"
 
 [build-dependencies]
 chrono = "0.4"
@@ -183,5 +188,6 @@ path = "src/bin/completions.rs"
 [[bin]]
 name = "stellar-watcher"
 path = "src/bin/stellar-watcher.rs"
+required-features = ["rest-api", "metrics"]
 
 [workspace]

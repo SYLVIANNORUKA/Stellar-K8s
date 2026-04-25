@@ -62,6 +62,7 @@ mod stellar_node_spec_validation {
             nat_traversal: None,
             cross_cloud_failover: None,
             hitless_upgrade: None,
+            ..Default::default()
         }
     }
 
@@ -118,6 +119,7 @@ mod stellar_node_spec_validation {
             nat_traversal: None,
             cross_cloud_failover: None,
             hitless_upgrade: None,
+            ..Default::default()
         }
     }
 
@@ -172,6 +174,7 @@ mod stellar_node_spec_validation {
             nat_traversal: None,
             cross_cloud_failover: None,
             hitless_upgrade: None,
+            ..Default::default()
         }
     }
 
@@ -271,6 +274,7 @@ mod stellar_node_spec_validation {
             custom_metrics: vec![],
             behavior: None,
             predictive_scaling: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -301,6 +305,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: None,
             annotations: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -391,6 +396,7 @@ mod stellar_node_spec_validation {
             custom_metrics: vec![],
             behavior: None,
             predictive_scaling: None,
+            ..Default::default()
         });
 
         assert!(spec.validate().is_ok());
@@ -406,6 +412,7 @@ mod stellar_node_spec_validation {
             custom_metrics: vec![],
             behavior: None,
             predictive_scaling: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -430,6 +437,7 @@ mod stellar_node_spec_validation {
             custom_metrics: vec![],
             behavior: None,
             predictive_scaling: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -460,6 +468,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: None,
             annotations: None,
+            ..Default::default()
         });
 
         assert!(spec.validate().is_ok());
@@ -475,6 +484,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: None,
             annotations: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -505,6 +515,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: None,
             annotations: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -532,6 +543,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: None,
             annotations: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -562,6 +574,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: None,
             annotations: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -592,6 +605,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: None,
             annotations: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -622,6 +636,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: None,
             annotations: None,
+            ..Default::default()
         });
 
         assert!(spec.validate().is_ok());
@@ -671,6 +686,7 @@ mod stellar_node_spec_validation {
             custom_metrics: vec!["rpc_requests_per_second".to_string()],
             behavior: None,
             predictive_scaling: None,
+            ..Default::default()
         });
 
         assert!(spec.validate().is_ok());
@@ -686,6 +702,7 @@ mod stellar_node_spec_validation {
             custom_metrics: vec![],
             behavior: None,
             predictive_scaling: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -710,6 +727,7 @@ mod stellar_node_spec_validation {
             custom_metrics: vec![],
             behavior: None,
             predictive_scaling: None,
+            ..Default::default()
         });
 
         let result = spec.validate();
@@ -740,6 +758,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: Some("letsencrypt-prod".to_string()),
             annotations: None,
+            ..Default::default()
         });
 
         assert!(spec.validate().is_ok());
@@ -916,6 +935,7 @@ mod stellar_node_spec_validation {
             custom_metrics: vec![],
             behavior: None,
             predictive_scaling: None,
+            ..Default::default()
         });
 
         assert!(spec.validate().is_ok());
@@ -967,6 +987,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: None,
             annotations: None,
+            ..Default::default()
         });
 
         assert!(spec.validate().is_ok());
@@ -994,6 +1015,7 @@ mod stellar_node_spec_validation {
             cert_manager_issuer: None,
             cert_manager_cluster_issuer: None,
             annotations: None,
+            ..Default::default()
         });
 
         assert!(spec.validate().is_ok());

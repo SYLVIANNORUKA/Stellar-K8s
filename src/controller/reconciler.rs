@@ -47,6 +47,7 @@ use crate::crd::{
     StellarNodeStatus,
 };
 use crate::error::{Error, Result};
+#[cfg(feature = "metrics")]
 use crate::infra;
 
 use super::archive_health::{
@@ -76,6 +77,8 @@ use super::resources;
 use super::service_mesh;
 use super::vpa as vpa_controller;
 use super::vsl;
+use super::audit_worker::AuditWorker;
+use super::audit_sink::{AuditSink, S3AuditSink, NoopAuditSink};
 
 // Constants
 #[allow(dead_code)]
@@ -221,6 +224,7 @@ pub struct ControllerState {
     /// Optional OIDC configuration for JWT-based authentication on the REST API.
     /// When `Some`, the OIDC middleware is active; when `None`, the operator falls
     /// back to Kubernetes RBAC token validation.
+    #[cfg(feature = "rest-api")]
     pub oidc_config: Option<crate::rest_api::OidcConfig>,
 }
 
@@ -341,6 +345,22 @@ pub async fn run_controller(state: Arc<ControllerState>) -> Result<()> {
             error!("Quorum Optimizer stopped with error: {}", e);
         }
     });
+
+    // Start Audit Worker if enabled
+    if state.operator_config.audit.enabled {
+        let sink: Arc<dyn AuditSink> = if let Some(s3_config) = &state.operator_config.audit.s3 {
+            Arc::new(S3AuditSink::new(s3_config.clone()).await)
+        } else {
+            Arc::new(NoopAuditSink)
+        };
+        
+        let audit_worker = AuditWorker::new(client.clone(), sink);
+        tokio::spawn(async move {
+            if let Err(e) = audit_worker.run().await {
+                error!("Audit Worker stopped with error: {}", e);
+            }
+        });
+    }
 
     Controller::new(stellar_nodes, Config::default())
         // Watch owned resources for changes
@@ -1665,6 +1685,7 @@ pub(crate) async fn apply_stellar_node(
                     .num_seconds();
                 if age < 15 {
                     info!("Skipping health polling for {}/{}, DB trigger recently updated status {}s ago", namespace, name, age);
+                    #[cfg(feature = "metrics")]
                     crate::controller::metrics::inc_api_polls_avoided(&namespace, &name);
                     skipped_poll = true;
                     // Assume node is healthy, use the reactively set ledger sequence
@@ -3216,17 +3237,20 @@ async fn run_archive_checkpoint_verification(
     };
 
     // Update metrics
-    let node_type = format!("{:?}", node.spec.node_type);
-    let network = format!("{:?}", node.spec.network);
-    let hardware = hardware_generation_for_metrics(client, node).await;
-    metrics::set_archive_integrity_status(
-        &namespace,
-        &name,
-        &node_type,
-        &network,
-        &hardware,
-        all_healthy,
-    );
+    #[cfg(feature = "metrics")]
+    {
+        let node_type = format!("{:?}", node.spec.node_type);
+        let network = format!("{:?}", node.spec.network);
+        let hardware = hardware_generation_for_metrics(client, node).await;
+        metrics::set_archive_integrity_status(
+            &namespace,
+            &name,
+            &node_type,
+            &network,
+            &hardware,
+            all_healthy,
+        );
+    }
 
     // Update status conditions
     let mut status = node.status.clone().unwrap_or_default();

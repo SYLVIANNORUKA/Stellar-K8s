@@ -65,6 +65,8 @@ mod archive_health;
 pub mod archive_prune;
 pub mod audit;
 pub mod audit_log;
+pub mod audit_sink;
+pub mod audit_worker;
 pub mod background_jobs;
 pub mod captive_core;
 pub mod chaos_engineering;
@@ -123,7 +125,6 @@ pub use archive_health::{
     ArchiveIntegrityResult, ARCHIVE_LAG_THRESHOLD,
 };
 pub use audit_log::{AdminAction, AuditEntry, AuditLog};
-#[cfg(feature = "reconciler-fuzz")]
 pub use background_jobs::{JobKind, JobRecord, JobRegistry, JobState, MAX_JOBS};
 pub use benchmark::run_benchmark_controller;
 pub use blue_green::{
